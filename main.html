@@ -9,9 +9,7 @@
 
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@5/+esm";
 
-
-console.log("testing");
-const totalEnrollment = d3.csv("./totalEnrollment.csv").then(function(totalEnrollment) {
+const totalEnrollment = d3.csv("./data/totalEnrollment.csv").then(function(totalEnrollment) {
     console.log(totalEnrollment);
     // Declare the chart dimensions and margins.
     const width = 920;
@@ -96,6 +94,87 @@ const totalEnrollment = d3.csv("./totalEnrollment.csv").then(function(totalEnrol
     container.append(svg.node());
 });
 
+
+</script>
+
+
+<script type = "module">
+    import * as d3 from "https://cdn.jsdelivr.net/npm/d3@5/+esm";
+
+
+    d3.csv("./data/MPLS_Schools.csv").then(function(schoolCoords) {
+        d3.json("./data/CW_School_Districts.geojson").then(function(mn_districts) {
+             
+        const width = 920;
+        const height = 500;
+        const margin = 15;
+
+        // var pathGenerator = d3.geoPath().projection(
+        //     d3.geoMercator().fitExtent([
+        //     [margin, margin], // top, left
+        //     [width - margin, height - margin] // bottom, right
+        // ],
+        // mn_districts // geometry
+        // ));
+
+       
+    
+        const svg = d3.create("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("viewBox", [0, 0, width, height])
+            .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+
+
+        svg
+            .append("rect")
+            .attr("fill", "#fafafa")
+            .attr("stroke-width", "1")
+            .attr("stroke", "#dddddd")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", width)
+            .attr("height", height);
+        
+        svg
+            .selectAll("path")
+            .data(mn_districts.features)
+            .enter()
+            .append("path")
+            .attr("d", 
+                d3.geoPath().projection(
+                d3.geoMercator().fitExtent([
+                    [margin, margin], // top, left
+                    [width - margin, height - margin] // bottom, right
+                ],
+                mn_districts // geometry
+            ))    
+            )
+            .attr("fill", (d) => parseFloat(d.properties.Demographic) >= 0 ? "none" : "#D7D7D7")
+            .attr("stroke", "#000000")
+            .attr("stroke-width", "2");
+
+        //add cordinates from schools data
+        svg
+            .append("g")
+            .attr("fill-opacity", 0.7)
+            .attr("stroke", "black")
+            .attr("stroke-width", 0.5)
+            .selectAll('circle')
+            .data(schoolCoords)
+            .enter()
+            .append('circle')
+            .attr("cx", d => projection([d.Long, d.Lat])[0])
+            .attr("cy", d => projection([d.Long, d.Lat])[1])
+            .attr("r", 3)
+        .attr("fill", d => d.Public == "TRUE" ? "blue" : "red");
+
+
+        // pass to Observable to draw this block
+        container.append(svg.node());
+
+        })
+});
 
 </script>
 </body>
